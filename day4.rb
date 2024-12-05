@@ -184,8 +184,33 @@ class Solver
   def solve_second(input)
     answer = 0
     lines = input.lines.map(&:strip)
-    numbers = input.split().map { |s| s.to_i }
+    width = lines[0].length
+    height = lines.length
+    lookup = lines.join
+    lookup.each_char.with_index do |char, index|
+      answer += 1 if find_xmas(index, lookup, 3, width, height)
+    end
     answer
+  end
+  
+  def find_xmas(index, lookup, size, width, height)
+    row, col = coords(index, width, height)
+    adjusted_size = size - 1
+    return false if (row + adjusted_size) > width - 1 || (col + adjusted_size) > height - 1
+    # A . E
+    # . B .
+    # D . C
+    a = index
+    b = index(row + 1, col + 1, width)
+    c = index(row + 2, col + 2, width)
+    d = index(row, col + 2, width)
+    e = index(row + 2, col, width)
+    # puts "#{lookup[a]} . #{lookup[e]}\n. #{lookup[b]} .\n#{lookup[d]} . #{lookup[c]}"
+    first = lookup[a] + lookup[b] + lookup[c]
+    second = lookup[d] + lookup[b] + lookup[e]
+    # puts "first: #{first}, second: #{second}"
+    targets = ["MAS", "SAM"]
+    return targets.include?(first) && targets.include?(second)
   end
 end
 
