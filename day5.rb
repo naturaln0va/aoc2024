@@ -101,11 +101,11 @@ class Solver
   def solve_first(input)
     answer = 0    
     parts = input.lines.map(&:strip).join("\n").split("\n\n")
-    rules = parts.first.lines.map { _1.strip.split("|") }
+    rules = parts.first.lines.map { _1.strip.split("|").map(&:to_i) }
     values = []
     updates = parts.last.lines.map(&:strip)
     updates.each do |line|
-      comps = line.split(",")
+      comps = line.split(",").map(&:to_i)
       if validate(comps, rules)
         values << comps[comps.length / 2].to_i
       end
@@ -127,9 +127,38 @@ class Solver
 
   def solve_second(input)
     answer = 0
-    lines = input.lines.map(&:strip)
-    numbers = input.split().map { |s| s.to_i }
+    parts = input.lines.map(&:strip).join("\n").split("\n\n")
+    rules = parts.first.lines.map { _1.strip.split("|").map(&:to_i) }
+    lookup = Hash.new { _1[_2] = [] }
+    rules.each { lookup[_1[0]] << _1[1] }
+    invalid = []
+    updates = parts.last.lines.map(&:strip)
+    updates.each do |line|
+      comps = line.split(",").map(&:to_i)
+      invalid << line unless validate(comps, rules)
+    end
+    values = []
+    invalid.each do |line|
+      sorted = sort_line(line, lookup)
+      values << sorted[sorted.length / 2].to_i
+    end
+    answer = values.sum
     answer
+  end
+  
+  def sort_line(line, lookup)
+    comps = line.split(",").map(&:to_i)
+    comps.sort! do |a, b|
+      case
+      when lookup.include?(a) && lookup[a].include?(b)
+        -1
+      when !lookup.include?(b) || lookup[b].include?(a)
+        1
+      else
+        0
+      end
+    end
+    comps
   end
 end
 
